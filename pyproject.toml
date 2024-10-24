@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "html5-parser"
+version = "0.4.11"
+authors = [{name = "Kovid Goyal", email = "redacted@acme.com"}]
+description = "Fast C based HTML 5 parsing for python"
+license = {text = "Apache 2.0"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: Markup",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Topic :: Text Processing :: Markup :: XML",
+]
+urls = {Homepage = "https://html5-parser.readthedocs.io"}
+dependencies = [
+    "chardet",
+    "lxml>=3.8.0",
+]
+
+[project.optional-dependencies]
+soup = ["beautifulsoup4"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["html5_parser"]
+platforms = ["any"]
+include-package-data = false
+
+[tool.ruff]
+select = ["ALL"]
+ignore = ["RUF001"]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+docstring-quotes = "double"
+
+[tool.ruff.mccabe]
+max-complexity = 10
+
+[tool.ruff.pyupgrade]
+keep-runtime-typing = true
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+
+[tool.yapf]
+based_on_style = "pep8"
+column_limit = "100"
+split_penalty_import_names = "100"
+dedent_closing_brackets = "True"
+coalesce_brackets = "True"
+blank_line_before_nested_class_or_def = "True"
+
+[tool.isort]
+combine_as_imports = true
+line_length = 100
+multi_line_output = 5
+known_future_library = ["__python__"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unreachable = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+strict_equality = true
+check_untyped_defs = true
+no_implicit_reexport = true
+mypy_path = "stubs"
+ignore_missing_imports = true
