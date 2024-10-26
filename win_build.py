@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-# vim:fileencoding=utf-8
 # License: Apache 2.0 Copyright: 2017, Kovid Goyal <kovid at kovidgoyal.net>
 
-from __future__ import print_function
 
 import errno
 import glob
 import io
 import os
-import pipes
 import shlex
 import shutil
 import subprocess
@@ -16,10 +13,10 @@ import sys
 import tarfile
 import time
 
-ZLIB = "http://zlib.net/zlib-{}.tar.xz".format("1.2.13")
-LIBXML2 = "ftp://xmlsoft.org/libxml2/libxml2-{}.tar.gz".format('2.9.4')
-LIBXSLT = "ftp://xmlsoft.org/libxml2/libxslt-{}.tar.gz".format('1.1.28')
-LXML = "https://files.pythonhosted.org/packages/06/5a/e11cad7b79f2cf3dd2ff8f81fa8ca667e7591d3d8451768589996b65dec1/lxml-4.9.2.tar.gz"  # noqa
+ZLIB = 'http://zlib.net/zlib-{}.tar.xz'.format('1.3.1')
+LIBXML2 = 'https://download.gnome.org/sources/libxml2/2.13/libxml2-{}.tar.xz'.format('2.13.4')
+LIBXSLT = 'https://download.gnome.org/sources/libxslt/1.1/libxslt-{}.tar.xz'.format('1.1.42')
+LXML = 'https://files.pythonhosted.org/packages/e7/6b/20c3a4b24751377aaa6307eb230b66701024012c29dd374999cc92983269/lxml-5.3.0.tar.gz'
 SW = os.path.abspath('sw')
 PYTHON = os.path.abspath(sys.executable)
 os.environ['SW'] = SW
@@ -52,7 +49,7 @@ def download_file(url):
                 return urlopen(url).read()
         except subprocess.CalledProcessError:
             time.sleep(1)
-    raise SystemExit('Failed to download: {}'.format(url))
+    raise SystemExit(f'Failed to download: {url}')
 
 
 def split(x):
@@ -61,11 +58,11 @@ def split(x):
 
 
 def run(*args, env=None, cwd=None):
-    if len(args) == 1 and isinstance(args[0], type('')):
+    if len(args) == 1 and isinstance(args[0], str):
         cmd = split(args[0])
     else:
         cmd = args
-    printf(' '.join(pipes.quote(x) for x in cmd))
+    printf(' '.join(shlex.quote(x) for x in cmd))
     sys.stdout.flush()
     if env:
         printf('Using modified env:', env)
@@ -74,7 +71,7 @@ def run(*args, env=None, cwd=None):
         env = e
     try:
         p = subprocess.Popen(cmd, cwd=cwd, env=env)
-    except EnvironmentError as err:
+    except OSError as err:
         if err.errno == errno.ENOENT:
             raise SystemExit('Could not find the program: %s' % cmd[0])
         raise
@@ -105,9 +102,9 @@ def query_process(cmd):
     try:
         stdout, stderr = popen.communicate()
         if popen.wait() != 0:
-            raise RuntimeError(stderr.decode("mbcs"))
+            raise RuntimeError(stderr.decode('mbcs'))
 
-        stdout = stdout.decode("mbcs")
+        stdout = stdout.decode('mbcs')
         for line in stdout.splitlines():
             if '=' not in line:
                 continue
@@ -144,15 +141,15 @@ def download_and_extract(url):
 def ensure_dir(path):
     try:
         os.makedirs(path)
-    except EnvironmentError as err:
+    except OSError as err:
         if err.errno != errno.EEXIST:
             raise
 
 
 def replace_in_file(path, old, new, missing_ok=False):
-    if isinstance(old, type('')):
+    if isinstance(old, str):
         old = old.encode('utf-8')
-    if isinstance(new, type('')):
+    if isinstance(new, str):
         new = new.encode('utf-8')
     with open(path, 'r+b') as f:
         raw = f.read()
@@ -288,8 +285,8 @@ def build():
     env = query_vcvarsall()
     os.environ.update(env)
     os.environ.update(dict(
-        LIBXML_INCLUDE_DIRS=r'{0}\include;{0}\include\libxml2'.format(SW),
-        LIBXML_LIB_DIRS=r'{0}\lib'.format(SW),
+        LIBXML_INCLUDE_DIRS=rf'{SW}\include;{SW}\include\libxml2',
+        LIBXML_LIB_DIRS=rf'{SW}\lib',
         HTML5_PARSER_DLL_DIR=os.path.join(SW, 'bin'),
     ))
     print('Using PYTHONPATH:', os.environ['PYTHONPATH'])
