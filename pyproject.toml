@@ -37,9 +37,10 @@ include-package-data = false
 
 [tool.ruff]
 select = ["ALL"]
-ignore = ["RUF001"]
+ignore = ["RUF001", "RUF003"]
 line-length = 100
 target-version = "py313"
+indent-width = 2
 
 [tool.ruff.flake8-quotes]
 inline-quotes = "single"
@@ -48,12 +49,15 @@ docstring-quotes = "double"
 [tool.ruff.mccabe]
 max-complexity = 10
 
-[tool.ruff.pyupgrade]
-keep-runtime-typing = true
-
 [tool.ruff.pydocstyle]
 convention = "numpy"
 
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+line-ending = "auto"
+preview = true
+skip-magic-trailing-comma = true
 
 [tool.yapf]
 based_on_style = "pep8"
