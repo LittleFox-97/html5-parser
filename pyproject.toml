@@ -76,6 +76,7 @@ known_future_library = ["__python__"]
 [tool.mypy]
 python_version = "3.13"
 strict = true
+platform = "win32"
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
