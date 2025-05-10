@@ -1,0 +1,65 @@
+[build-system]
+requires=["setuptools>=80", "wheel"]
+build-backend="setuptools.build_meta"
+
+[project]
+name="html5-parser"
+version="0.4.12"
+description="Fast C based HTML 5 parsing for python"
+authors=[{ name="Kovid Goyal", email="redacted@acme.com" }]
+readme="README.rst"
+requires-python=">=3.11"
+classifiers=[
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Topic :: Text Processing",
+  "Topic :: Text Processing :: Markup",
+  "Topic :: Text Processing :: Markup :: HTML",
+  "Topic :: Text Processing :: Markup :: XML",
+]
+dependencies=["chardet", "lxml>=5.4.0"]
+optional-dependencies={ "soup"=["beautifulsoup4"] }
+license="Apache 2.0"
+urls={ "Documentation"="https://html5-parser.readthedocs.io", "Source"="https://github.com/kovidgoyal/html5-parser" }
+
+[tool.ruff]
+line-length=120
+preview=true
+
+[tool.ruff.analyze]
+detect-string-imports=true
+preview=true
+
+[tool.ruff.mccabe]
+max-complexity=10
+
+[tool.ruff.format]
+preview=true
+docstring-code-format=true
+quote-style="single"
+skip-magic-trailing-comma=true
+
+[tool.ruff.lint]
+preview=true
+select=["ALL"]
+ignore=["D300", "RUF", "CPY", "TD002", "TD003"]
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return=true
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes="single"
+inline-quotes="single"
+multiline-quotes="single"
+
+[tool.ruff.lint.pydocstyle]
+convention="numpy"
+
+[tool.mypy]
+python_version="3.13"
+platform="win32"
+strict=true

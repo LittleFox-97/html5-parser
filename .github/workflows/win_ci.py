@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-# vim:fileencoding=utf-8
 # License: Apache 2.0 Copyright: 2017, Kovid Goyal <kovid at kovidgoyal.net>
 
-from __future__ import print_function
 
 import errno
 import glob
 import io
 import os
-import pipes
 import shlex
 import shutil
 import subprocess
@@ -16,10 +13,10 @@ import sys
 import tarfile
 import time
 
-ZLIB = "http://zlib.net/zlib-{}.tar.xz".format("1.2.13")
-LIBXML2 = "ftp://xmlsoft.org/libxml2/libxml2-{}.tar.gz".format('2.9.4')
-LIBXSLT = "ftp://xmlsoft.org/libxml2/libxslt-{}.tar.gz".format('1.1.28')
-LXML = "https://files.pythonhosted.org/packages/06/5a/e11cad7b79f2cf3dd2ff8f81fa8ca667e7591d3d8451768589996b65dec1/lxml-4.9.2.tar.gz"  # noqa
+ZLIB = "http://zlib.net/zlib-{}.tar.xz".format("1.3.1")
+LIBXML2 = "https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.12.0/libxml2-v2.12.0.tar.gz"
+LIBXSLT = "https://gitlab.gnome.org/GNOME/libxslt/-/archive/v1.1.39/libxslt-v1.1.39.tar.gz"
+LXML = "https://files.pythonhosted.org/packages/06/5a/e11cad7b79f2cf3dd2ff8f81fa8ca667e7591d3d8451768589996b65dec1/lxml-4.9.2.tar.gz"
 SW = os.path.abspath('sw')
 PYTHON = os.path.abspath(sys.executable)
 os.environ['SW'] = SW
@@ -65,7 +62,7 @@ def run(*args, env=None, cwd=None):
         cmd = split(args[0])
     else:
         cmd = args
-    printf(' '.join(pipes.quote(x) for x in cmd))
+    printf(' '.join(shlex.quote(x) for x in cmd))
     sys.stdout.flush()
     if env:
         printf('Using modified env:', env)
@@ -83,8 +80,9 @@ def run(*args, env=None, cwd=None):
 
 
 def distutils_vcvars():
-    from distutils.msvc9compiler import find_vcvarsall, get_build_version
-    return find_vcvarsall(get_build_version())
+    from setuptools._distutils.compilers.C.msvc import _find_vcvarsall
+    vcvars_path = _find_vcvarsall(plat)[0]
+    return vcvars_path
 
 
 def remove_dups(variable):
@@ -100,8 +98,11 @@ def query_process(cmd):
     if plat == 'amd64' and 'PROGRAMFILES(x86)' not in os.environ:
         os.environ['PROGRAMFILES(x86)'] = os.environ['PROGRAMFILES'] + ' (x86)'
     result = {}
-    popen = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+    try:
+        popen = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, shell=True)
+    except FileNotFoundError as err:
+        raise SystemExit(f'Failed to execute: {cmd!r} with error: {err}')
     try:
         stdout, stderr = popen.communicate()
         if popen.wait() != 0:
@@ -262,6 +263,7 @@ def lxml():
 
 
 def install_deps():
+    run(PYTHON, '-m', 'pip', 'install', 'setuptools')
     env = query_vcvarsall()
     os.environ.update(env)
     print(PYTHON)
