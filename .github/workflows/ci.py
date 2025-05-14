@@ -38,7 +38,7 @@ def install_deps():
 def main():
     which = sys.argv[-1]
     if hasattr(sys, 'getwindowsversion'):
-        run(sys.executable, os.path.join(os.path.dirname(__file__), 'win-ci.py'), which)
+        run(sys.executable, os.path.join(os.path.dirname(__file__), 'win_ci.py'), which)
         return
     if which == 'install':
         install_deps()

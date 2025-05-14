@@ -15,8 +15,9 @@ import sys
 import tarfile
 import time
 from functools import lru_cache
+from urllib.request import urlopen
 
-ZLIB = "http://zlib.net/zlib-{}.tar.xz".format("1.3.1")
+ZLIB = 'http://zlib.net/zlib-1.3.1.tar.xz'
 LIBXML2 = "https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.12.0/libxml2-v2.12.0.tar.gz"
 LIBXSLT = "https://gitlab.gnome.org/GNOME/libxslt/-/archive/v1.1.39/libxslt-v1.1.39.tar.gz"
 LXML = "https://files.pythonhosted.org/packages/30/39/7305428d1c4f28282a4f5bdbef24e0f905d351f34cf351ceb131f5cddf78/lxml-4.9.3.tar.gz"  # noqa
@@ -39,20 +40,16 @@ def walk(path='.'):
 
 
 def download_file(url):
-    for i in range(5):
+    for _ in range(5):
         try:
             printf('Downloading', url)
             try:
                 return subprocess.check_output(['curl.exe', '-fSL', url])
             except FileNotFoundError:
-                try:
-                    from urllib.request import urlopen
-                except ImportError:
-                    from urllib import urlopen
                 return urlopen(url).read()
         except subprocess.CalledProcessError:
             time.sleep(1)
-    raise SystemExit('Failed to download: {}'.format(url))
+    raise SystemExit(f'Failed to download: {url}')
 
 
 def split(x):
@@ -70,13 +67,13 @@ def run(*args, env=None, cwd=None):
     if env:
         printf('Using modified env:', env)
         e = os.environ.copy()
-        e.update(env)
+        e |= env
         env = e
     try:
         p = subprocess.Popen(cmd, cwd=cwd, env=env)
     except EnvironmentError as err:
         if err.errno == errno.ENOENT:
-            raise SystemExit('Could not find the program: %s' % cmd[0])
+            raise SystemExit(f'Could not find the program: {cmd[0]}') from err
         raise
     if p.wait() != 0:
         raise SystemExit(p.returncode)
@@ -116,13 +113,11 @@ def replace_in_file(path, old, new, missing_ok=False):
         new = new.encode('utf-8')
     with open(path, 'r+b') as f:
         raw = f.read()
-        if isinstance(old, bytes):
-            nraw = raw.replace(old, new)
-        else:
-            nraw = old.sub(new, raw)
+        nraw = raw.replace(old, new) if isinstance(old, bytes) else old.sub(new, raw)
         if raw == nraw and not missing_ok:
-            raise ValueError('Failed (pattern not found) to patch: ' + path)
-        f.seek(0), f.truncate()
+            raise ValueError(f'Failed (pattern not found) to patch: {path}')
+        f.seek(0)
+        f.truncate()
         f.write(nraw)
 
 
@@ -144,13 +139,13 @@ def install_binaries(pattern, destdir='lib', fname_map=os.path.basename):
     files = glob.glob(pattern)
     files.sort(key=len, reverse=True)
     if not files:
-        raise ValueError('The pattern %s did not match any actual files' % pattern)
+        raise ValueError(f'The pattern {pattern} did not match any actual files')
     for f in files:
         dst = os.path.join(dest, fname_map(f))
         shutil.copy(f, dst)
         os.chmod(dst, 0o755)
-        if os.path.exists(f + '.manifest'):
-            shutil.copy(f + '.manifest', dst + '.manifest')
+        if os.path.exists(f'{f}.manifest'):
+            shutil.copy(f'{f}.manifest', f'{dst}.manifest')
 
 
 def install_tree(src, dest_parent='include', ignore=None):
@@ -170,8 +165,10 @@ def pure_python():
 def zlib():
     run('nmake -f win32/Makefile.msc')
     install_binaries('zlib1.dll*', 'bin')
-    install_binaries('zlib.lib'), install_binaries('zdll.*')
-    copy_headers('zconf.h'), copy_headers('zlib.h')
+    install_binaries('zlib.lib')
+    install_binaries('zdll.*')
+    copy_headers('zconf.h')
+    copy_headers('zlib.h')
 
 
 def cmake_build(
@@ -194,8 +191,7 @@ def cmake_build(
             defs.pop(d, None)
         else:
             defs[d] = val
-    for k, v in defs.items():
-        cmd.append('-D' + k + '=' + v)
+    cmd.extend(f'-D{k}={v}' for k, v in defs.items())
     cmd.append('..')
     env = env or {}
     env['CMAKE_PREFIX_PATH'] = SW
@@ -283,7 +279,7 @@ def find_msbuild():
         "-requires", "Microsoft.Component.MSBuild",
         "-property", 'installationPath'
     ).strip()
-    return glob(os.path.join(
+    return glob.glob(os.path.join(
         base_path, 'MSBuild', '*', 'Bin', 'MSBuild.exe'))[0]
 
 
@@ -322,8 +318,10 @@ def query_process(cmd, is64bit):
             result[key] = value
 
     finally:
-        popen.stdout.close()
-        popen.stderr.close()
+        if popen.stdout is not None:
+            popen.stdout.close()
+        if popen.stderr is not None:
+            popen.stderr.close()
     return result
 
 
@@ -339,7 +337,7 @@ def query_vcvarsall(is64bit=True):
     for k in env:
         m = pat.match(k)
         if m is not None:
-            comn_tools[k] = int(m.group(1))
+            comn_tools[k] = int(m[1])
     comntools = sorted(comn_tools, key=comn_tools.__getitem__)[-1]
 
 
@@ -368,7 +366,7 @@ def query_vcvarsall(is64bit=True):
 
 def install_deps():
     env = query_vcvarsall()
-    os.environ.update(env)
+    os.environ |= env
     print(PYTHON)
     run(PYTHON, '-m', 'pip', 'install', 'setuptools')
     for x in 'build lib bin include python/Lib/site-packages'.split():
@@ -380,7 +378,8 @@ def install_deps():
         os.chdir(base)
         if os.path.exists(name):
             continue
-        os.mkdir(name), os.chdir(name)
+        os.mkdir(name)
+        os.chdir(name)
         try:
             download_and_extract(globals()[name.upper()])
             globals()[name]()
@@ -392,7 +391,7 @@ def install_deps():
 
 def build():
     env = query_vcvarsall()
-    os.environ.update(env)
+    os.environ |= env
     os.environ.update(dict(
         LIBXML_INCLUDE_DIRS=r'{0}\include;{0}\include\libxml2'.format(SW),
         LIBXML_LIB_DIRS=r'{0}\lib'.format(SW),

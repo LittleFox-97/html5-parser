@@ -6,3 +6,4 @@ docs/_build
 test/large.html
 test/html5lib-tests
 __pycache__
+./win_ci.py
