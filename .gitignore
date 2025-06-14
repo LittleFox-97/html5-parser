@@ -6,3 +6,6 @@ docs/_build
 test/large.html
 test/html5lib-tests
 __pycache__
+.vscode/
+Pipfile.lock
+Pipfile
