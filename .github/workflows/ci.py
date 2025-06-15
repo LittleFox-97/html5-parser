@@ -13,9 +13,8 @@ import sys
 is_macos = 'darwin' in sys.platform.lower()
 
 
-def run(*a):
-    if len(a) == 1:
-        a = shlex.split(a[0])
+def run(*a_str:str) -> None:
+    a = shlex.split(a_str[0]) if len(a_str) == 1 else a_str
     ret = subprocess.Popen(a).wait()
     if ret != 0:
         print('Running:', a, 'failed', file=sys.stderr)
@@ -23,9 +22,7 @@ def run(*a):
 
 
 def install_deps():
-    if is_macos:
-        pass
-    else:
+    if not is_macos:
         run('sudo apt-get update')
         run('sudo apt-get install -y libxml2-dev libxslt-dev')
     deps = 'chardet lxml beautifulsoup4'.split()
