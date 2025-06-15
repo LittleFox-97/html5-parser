@@ -1,0 +1,39 @@
+name: CI (macOS)
+on: [push, pull_request]
+env:
+    CI: 'true'
+    LC_ALL: en_US.UTF-8
+    LANG: en_US.UTF-8
+
+jobs:
+    test:
+        name: Test on macos-latest (python=3.11 cc=clang builder=setup.py)
+        runs-on: macos-latest
+        env:
+            CC: clang
+            BUILDER: setup.py
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@master
+              with:
+                fetch-depth: 10
+
+            - name: Set up Python 3.11
+              uses: actions/setup-python@master
+              with:
+                python-version: 3.11
+
+            - name: Set up cmake
+              uses: lukka/get-cmake@latest
+
+            - name: Install dependencies
+              run:
+                python .github/workflows/ci.py install
+
+            - name: Download html5lib tests
+              run:
+                git clone --depth 1 https://github.com/html5lib/html5lib-tests.git test/html5lib-tests
+
+            - name: Run tests
+              run:
+                python .github/workflows/ci.py test

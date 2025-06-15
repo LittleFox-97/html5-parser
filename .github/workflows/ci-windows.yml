@@ -1,0 +1,42 @@
+name: CI (Windows)
+on: [push, pull_request]
+env:
+    CI: 'true'
+    LC_ALL: en_US.UTF-8
+    LANG: en_US.UTF-8
+
+jobs:
+    test:
+        name: Test on windows-latest (python=${{ matrix.pyver }} cc=cl builder=setup.py)
+        runs-on: windows-latest
+        env:
+            CC: cl
+            BUILDER: setup.py
+        strategy:
+            matrix:
+                pyver: ["3.11", "3.12", "3.13"]
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@master
+              with:
+                fetch-depth: 10
+
+            - name: Set up Python ${{ matrix.pyver }}
+              uses: actions/setup-python@master
+              with:
+                python-version: ${{ matrix.pyver }}
+
+            - name: Set up cmake
+              uses: lukka/get-cmake@latest
+
+            - name: Install dependencies
+              run:
+                python .github/workflows/ci.py install
+
+            - name: Download html5lib tests
+              run:
+                git clone --depth 1 https://github.com/html5lib/html5lib-tests.git test/html5lib-tests
+
+            - name: Run tests
+              run:
+                python .github/workflows/ci.py test
