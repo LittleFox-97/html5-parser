@@ -18,7 +18,13 @@ skip-magic-trailing-comma = true
 [lint]
 preview = true
 select = ["ALL"]
-ignore = ["D300", "RUF", "CPY", "TD002", "TD003"]
+ignore = ["D300",
+"RUF", 
+"CPY", 
+"TD002", 
+"TD003",
+"FBT"
+]
 
 [lint.flake8-annotations]
 mypy-init-return = true
