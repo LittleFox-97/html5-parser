@@ -2,8 +2,8 @@ name: CI
 on: [push, pull_request]
 env:
   CI: 'true'
-  LC_ALL: en_US.UTF-8
-  LANG: en_US.UTF-8
+  LC_ALL: ru_RU.UTF-8
+  LANG: ru_RU.UTF-8
 
 jobs:
   test:
@@ -23,9 +23,6 @@ jobs:
           - { pyver: "3.12", builder: setup.py, os: windows-latest, cc: cl }
 
     steps:
-      - name: Check locale
-        run: | 
-          locale -a | grep ru_RU.UTF-8
       - name: Checkout source code
         uses: actions/checkout@master
         with:
