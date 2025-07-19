@@ -2,8 +2,6 @@ name: CI
 on: [push, pull_request]
 env:
   CI: 'true'
-  LC_ALL: ru_RU.UTF-8
-  LANG: ru_RU.UTF-8
 
 jobs:
   test:
@@ -23,24 +21,24 @@ jobs:
           - { pyver: "3.12", builder: setup.py, os: windows-latest, cc: cl }
 
     steps:
-      - name: Checkout source code
+      - name: Клонировать исходный код
         uses: actions/checkout@master
         with:
           fetch-depth: 10
 
-      - name: Set up Python
+      - name: Установить Python
         uses: actions/setup-python@master
         with:
           python-version: ${{ matrix.pyver }}
 
-      - name: Set up cmake
+      - name: Установить cmake
         uses: lukka/get-cmake@latest
 
-      - name: Install dependencies
+      - name: Установить зависимости
         run: python .github/workflows/ci.py install
 
-      - name: Download html5lib tests
+      - name: Скачать тесты html5lib
         run: git clone --depth 1 https://github.com/html5lib/html5lib-tests.git test/html5lib-tests
 
-      - name: Run tests
+      - name: Запустить тесты
         run: python .github/workflows/ci.py test
