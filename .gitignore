@@ -6,3 +6,7 @@ docs/_build
 test/large.html
 test/html5lib-tests
 __pycache__
+Pipfile.lock
+Pipfile
+pyproject.toml
+.vscode/

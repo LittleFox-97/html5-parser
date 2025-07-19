@@ -13,14 +13,14 @@ base = os.path.dirname(self_path)
 sys.path.insert(0, base)
 if True:
     from unix_build import (
-        SRC_DIRS, TEST_COMMAND, add_python_path, find_c_files, include_dirs, iswindows, libraries,
+        SRC_DIRS, TEST_COMMAND, add_python_path, find_c_files, include_dirs, is_windows, libraries,
         library_dirs, version
     )
 del sys.path[0]
 
 src_files = tuple(chain(*map(lambda x: find_c_files(x)[0], SRC_DIRS)))
-cargs = ('/O2' if iswindows else '-O3').split()
-if not iswindows:
+cargs = ('/O2' if is_windows else '-O3').split()
+if not is_windows:
     cargs.extend('-std=c99 -fvisibility=hidden'.split())
 
 
