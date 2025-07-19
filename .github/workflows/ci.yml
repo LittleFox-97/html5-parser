@@ -1,50 +1,49 @@
 name: CI
 on: [push, pull_request]
 env:
-    CI: 'true'
-    LC_ALL: en_US.UTF-8
-    LANG: en_US.UTF-8
+  CI: 'true'
+  LC_ALL: en_US.UTF-8
+  LANG: en_US.UTF-8
 
 jobs:
-    test:
-        name: Test on ${{ matrix.os }} (python=${{ matrix.pyver }} cc=${{ matrix.cc }} builder=${{ matrix.builder }})
-        runs-on: ${{ matrix.os }}
-        env:
-            CC: ${{ matrix.cc }}
-            BUILDER: ${{ matrix.builder }}
-        strategy:
-            matrix:
-                include:
-                    - { pyver: "3.8", builder: unix_build.py, os: ubuntu-latest, cc: gcc }
-                    - { pyver: "3.8", builder: unix_build.py, os: ubuntu-latest, cc: clang }
-                    - { pyver: "3.11", builder: setup.py, os: ubuntu-latest, cc: gcc }
+  test:
+    name: Test on ${{ matrix.os }} (python=${{ matrix.pyver }} cc=${{ matrix.cc }} builder=${{ matrix.builder }})
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: ${{ matrix.cc }}
+      BUILDER: ${{ matrix.builder }}
 
-                    - { pyver: "3.11", builder: setup.py, os: macos-latest, cc: clang }
+    strategy:
+      matrix:
+        include:
+          - { pyver: "3.8", builder: unix_build.py, os: ubuntu-latest, cc: gcc }
+          - { pyver: "3.8", builder: unix_build.py, os: ubuntu-latest, cc: clang }
+          - { pyver: "3.11", builder: setup.py, os: ubuntu-latest, cc: gcc }
+          - { pyver: "3.11", builder: setup.py, os: macos-latest, cc: clang }
+          - { pyver: "3.12", builder: setup.py, os: windows-latest, cc: cl }
 
-                    - { pyver: "3.12", builder: setup.py, os: windows-latest, cc: cl }
+    steps:
+      - name: Check locale
+        run: | 
+          locale -a | grep ru_RU.UTF-8
+      - name: Checkout source code
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 10
 
-        steps:
-            - name: Checkout source code
-              uses: actions/checkout@master
-              with:
-                fetch-depth: 10
+      - name: Set up Python
+        uses: actions/setup-python@master
+        with:
+          python-version: ${{ matrix.pyver }}
 
-            - name: Set up Python ${{ matrix.pyver }}
-              uses: actions/setup-python@master
-              with:
-                python-version: ${{ matrix.pyver }}
+      - name: Set up cmake
+        uses: lukka/get-cmake@latest
 
-            - name: Set up cmake
-              uses: lukka/get-cmake@latest
+      - name: Install dependencies
+        run: python .github/workflows/ci.py install
 
-            - name: Install dependencies
-              run:
-                python .github/workflows/ci.py install
+      - name: Download html5lib tests
+        run: git clone --depth 1 https://github.com/html5lib/html5lib-tests.git test/html5lib-tests
 
-            - name: Download html5lib tests
-              run:
-                git clone --depth 1 https://github.com/html5lib/html5lib-tests.git test/html5lib-tests
-
-            - name: Run tests
-              run:
-                python .github/workflows/ci.py test
+      - name: Run tests
+        run: python .github/workflows/ci.py test
